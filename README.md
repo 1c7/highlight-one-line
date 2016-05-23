@@ -1,5 +1,5 @@
 ## (Chrome Extension)  Highlight One Line
-[asd](img/1.png)
+![asd](img/1.png)
 
 
 <br/>
@@ -8,6 +8,6 @@ https://developer.chrome.com/webstore/publish
 <br/>
 
 
-1 进这里就行了 https://chrome.google.com/webstore/developer/dashboard
-2 要给谷歌5美元
-2 如果上传 zip 压缩包报错, 那么把 manifest.json 里的注释全部删掉
+1 要给谷歌5美元  
+2 进这里就行了 https://chrome.google.com/webstore/developer/dashboard  
+3 如果上传 zip 压缩包报错, 那么把 manifest.json 里的注释全部删掉  

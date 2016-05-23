@@ -1,0 +1,27 @@
+.chrome-ext-hightlight-box{
+    position:absolute; 
+    background-color:#3e3e3e !important; 
+    color:#E8E8E8 !important; 
+    z-index: 1;
+    line-height: initial;
+    BOX-SIZING: border-box;
+    width:100%;
+    text-align: left;
+}
+p, h1, h2, h3, h4, h5, h6{
+    cursor: pointer;
+}
+.chrome-ext-highlight-lastTime-box{
+    position:fixed;
+    top: 0px;
+    left: 0px;
+    cursor: pointer;
+    height: 46px; 
+    line-height: 46px;
+    background-color:#3e3e3e !important; 
+    color:#E8E8E8 !important; 
+    z-index: 999;
+    BOX-SIZING: border-box;
+    width:100%;
+    text-align: center;
+}

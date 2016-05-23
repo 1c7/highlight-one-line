@@ -1,17 +1,11 @@
 console.log('= Chrome Extenstion "Hightlight Single Line" is running');
 console.log('= If this page got display problem, maybe you should try to turn off this extension. and then debug. it may help.');
 /*
-    1 开启, 关闭功能，因为有些网站比如 Google 不需要
-    // disable hightlight on some website.
+Author             :   Github @1c7
+Bug & Suggestion   :   guokrfans#gmail.com
 
-    3 记忆阅读功能
-    // 先做这个
-*/
-/*
-Author: Github @1c7
-Bug & Suggestion: guokrfans#gmail.com
 ========================================
-        How this code work?
+    How this code work?
 ========================================
     Premise:
         there no API in Javascript or Browser can let you easily get one line text.
@@ -31,12 +25,21 @@ Bug & Suggestion: guokrfans#gmail.com
 
         3. put that div on page to *overlay* origin text.
 
+
+========================================
+    How do i store last read position?
+========================================
+        localStorage + JSON.stringify
+
 */
 // var count = 0; // count for test
 var prev_version = "";
 
 $('p, div, h1, h2, h3, h4, h5, h6, a').click(function(e){
-    
+
+    if ( localStorage.getItem('status') == 'off' ){
+        return;
+    }
 
     // count ++;
     // console.log('------------------ ' + count +' -------------------');
@@ -44,9 +47,10 @@ $('p, div, h1, h2, h3, h4, h5, h6, a').click(function(e){
     var x = e.clientX; // this would change every time you click
     var y = e.clientY;
 
-    // ===================================
+    // =====================================================
+    //    1 
     //    in some case, we don't want highlight that line
-    // ===================================
+    // =====================================================
     var parentTagName = $(e.target).parent()[0].tagName; // get current element tag name
     if (parentTagName == "BUTTON"){
         return;
@@ -54,6 +58,8 @@ $('p, div, h1, h2, h3, h4, h5, h6, a').click(function(e){
 
     var tagName = $(e.target)[0].tagName; // get current element tag name
     if (tagName == "A" || tagName == "CODE"){
+        // seem strange why we listen click event on <a> tag, and return?
+        // because when user click link, we don't want highlight that.
         return;
     }
     if (tagName == "DIV" && $(this)[0].children.length != 0){
@@ -64,14 +70,19 @@ $('p, div, h1, h2, h3, h4, h5, h6, a').click(function(e){
         // != 0 mean there are child element.
 
         // if so, we return;
+        console.log('HightLight: div contain element, return');
         return;
     }
 
-    e.stopPropagation(); // prevent repeat call
+    e.stopPropagation(); 
+    // Prevent repeat call,  this line is very important
     
-    prev_version = $(e.target).html(); // save before change
+    prev_version = $(e.target).html(); // Save origin html before change
 
-    // ==========================================  wrapLines  ===================================
+    // =====================================================
+    //    2 
+    //    wrapLines
+    // =====================================================
     wrapLines($(e.target));  
 
     var that_element = $(document.elementFromPoint(x, y)); 
@@ -84,18 +95,17 @@ $('p, div, h1, h2, h3, h4, h5, h6, a').click(function(e){
     var bodyRect = document.body.getBoundingClientRect(),
     elemRect = p;
     offset   = elemRect.top - bodyRect.top;
+    // Calculate top distance
 
-    // console.log('toooooooop:  ',that_top);
     var that_line = that_element.text(); 
-
     var that_size = that_element.css('font-size');  // 30px for example
     var ft_family = that_element.css('font-family');  
     var ft_weight = that_element.css('font-weight');  
     var ft_style = that_element.css('font-style'); 
 
-
+    // if float div already exist, we use it, if not, we create it.
     if ($('#chrome-ext-hightlight').length > 0){
-        var float_div = $('#chrome-ext-hightlight');
+        var float_div = $('#chrome-ext-hightlight').show();
         float_div.text(that_line);
         var newDiv = float_div[0];
     } else {
@@ -105,27 +115,43 @@ $('p, div, h1, h2, h3, h4, h5, h6, a').click(function(e){
         newDiv.id = "chrome-ext-hightlight";
     }
 
-
-    // ===================================
-    //       now create a elment
-    // ===================================
-    
+    // ======================================================
+    //       3 
+    //       now set property for correct style and position
+    // ======================================================
     var that_left = p.left;
 
-    var cs = 'position:absolute; background-color:#3e3e3e !important; color:#E8E8E8 !important; '; 
-     cs += 'top: ' + offset + "px; ";
-     cs += 'padding-left: ' + that_left + "px; text-align: left;";
+    var cs = 'top: ' + offset + "px; ";
+     cs += 'padding-left: ' + that_left + "px; ";
      cs += 'font-size: ' + that_size + ';';
-     cs += 'width:100%;';
-     cs += 'line-height: initial;';
      cs += 'font-family: ' + ft_family + ';';
      cs += 'font-weight: ' + ft_weight + ';';
      cs += 'font-style: ' + ft_style + ';';
 
     newDiv.style.cssText = cs;
-    $('body').append(newDiv);
+    $(newDiv).addClass('chrome-ext-hightlight-box'); // css/inject.css
+    $('html').append(newDiv); 
+    // some people give <body> element padding-left, that cause display problem.
+    // so we append <html>
 
     // ==============================================================
+    //     3
+    //     store last read position, 
+    //     if user refresh or come back this page after few day, that line still exists
+    // =============================================================
+    var lastRead = {}; 
+    lastRead.text = that_line; 
+    lastRead.top = offset; 
+    lastRead.left = that_left; 
+    lastRead.font_size = that_size; 
+    lastRead.font_family = ft_family; 
+    lastRead.font_weight = ft_weight; 
+    lastRead.font_style = ft_style; 
+    var url = window.location.href;
+    localStorage.setItem( url, JSON.stringify(lastRead) ); 
+
+    // ==============================================================
+    //     4 
     //     recover, very important, prevent break origin page.
     // =============================================================
     $(e.target).html(prev_version); 
@@ -133,14 +159,12 @@ $('p, div, h1, h2, h3, h4, h5, h6, a').click(function(e){
      
 });
 
+// The following "wrapLines" function come from stackoverflow
 // http://stackoverflow.com/questions/16223213/how-to-capture-one-line-of-text-in-a-div
 // Thanks to Pevara
-// btw: I didn't post that question, I just copy & paste that useful code
 function wrapLines($container) {
-    // get the text from the conatiner
+
     var text = $container.text();
-    
-    // split the text into words
     var words = text.split(' ');
     
     // wrap each word in a span and add it to a tmp
@@ -182,3 +206,80 @@ function wrapLines($container) {
     // remove the content of the conatiner, and replace it with the wrapped lines
     $container.html($(tmp));    
 }
+
+// recover last read position
+$(function(){
+    var url = window.location.href;
+    if( localStorage.getItem(url) != null){
+
+        lastRead = JSON.parse( localStorage.getItem(url) );
+
+        var newDiv = document.createElement("div");             
+        var newContent = document.createTextNode(lastRead.text); 
+        newDiv.appendChild(newContent); // text node
+        newDiv.id = "chrome-ext-hightlight";
+
+        var cs = 'top: ' + lastRead.top + "px; ";
+        cs += 'padding-left: ' + lastRead.left + "px; ";
+        cs += 'font-size: ' + lastRead.font_size + ';';
+        cs += 'font-family: ' + lastRead.font_family + ';';
+        cs += 'font-weight: ' + lastRead.font_weight + ';';
+        cs += 'font-style: ' + lastRead.font_style + ';';
+
+        newDiv.style.cssText = cs;
+        $(newDiv).addClass('chrome-ext-hightlight-box');
+
+        if ( localStorage.getItem('status') == 'off' ){
+           $(newDiv).hide();
+        } else {
+            // jump to last time read position temperly diable in this version.
+            // var lastReadDiv = document.createElement("div");             
+            // var lastReadDivContent = document.createTextNode('Click here go to last time read position'); 
+            // lastReadDiv.appendChild(lastReadDivContent); // text node
+            // $(lastReadDiv).addClass('chrome-ext-highlight-lastTime-box');
+            // lastReadDiv.id = "chrome-ext-highlight-lastTime";
+            // $('html').append(lastReadDiv); 
+        }
+        
+        $('html').append(newDiv); 
+
+    }
+
+    // last time read click event
+    $('#chrome-ext-highlight-lastTime').click(function(e){
+        $(this).fadeOut();
+        $('html,body').animate({scrollTop: $('#chrome-ext-hightlight').offset().top - 100}, 
+            400);
+        e.stopPropagation(); 
+    });
+});
+
+// background page would handle click event on top right extention icon
+// and here we receive message from background page
+chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
+    if (request.status == "off"){
+        $('#chrome-ext-hightlight').hide();
+        localStorage.setItem('status', 'off'); 
+        // 似乎不是全局存储, 所以导致了状态不一样的问题
+        // 取消点击事件还没做
+    } else {
+        $('#chrome-ext-hightlight').show();
+        localStorage.setItem('status', 'on'); 
+    }
+});
+/*
+    key press
+    还蛮麻烦的，不知道咋做
+*/
+/*$(document).on('keypress', function(e) {
+    var tag = e.target.tagName.toLowerCase();
+    console.log(e.which);
+    if ( (e.which === 87 || e.which === 119) && tag != 'input' && tag != 'textarea'){
+    // W or w
+         // console.log('W');
+    } else if ( (e.which === 83 || e.which === 115) && tag != 'input' && tag != 'textarea'){
+    // S or s
+         // console.log('S');
+    }
+       
+});*/

@@ -11,15 +11,21 @@ it would highlight the same line next time when you come back.
 
 ![preview after install](img/1.png)
 
-__Note:__ there are many many website, they all have different layout,     
-so __in some case this extenstion would break__, you should just disable the extenstion    
+<br/>
+__Note:__ There are many many website, they all have different layout,     
+__In some case this extenstion would break__, You should just disable the extenstion    
 example:  
 ![preview after install](img/break.png)  
 
-
-### if you have any suggestion
+<br/>
+### If you have any suggestion
 please open a issue on github, or email guokrfans#gmail.com     
 Thanks    
+
+<br/>
+### If you want improve this extenstion  
+fork & pull request  
+
 
 <br/>
 
